@@ -73,49 +73,29 @@
   /* click shield: fängt alle Klicks ab -> kein Zugriff auf irgendwelche Controls */
   #shield{ position:absolute; inset:0; z-index:3; cursor:pointer; background:transparent; }
 
-  /* ---- Sound-Toggle ---- */
-  #soundbtn{
-    position:absolute; top:14px; right:14px; z-index:5; display:none;
-    align-items:center; gap:8px; cursor:pointer;
-    font-family:"Space Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
-    color:#fff; background:rgba(7,12,35,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-    border:1px solid rgba(255,255,255,.18); border-radius:99px; padding:9px 14px;
-    transition:background .2s ease, transform .2s ease;
-  }
-  #soundbtn.visible{ display:inline-flex; }
-  #soundbtn:hover{ transform:translateY(-1px); }
-  #soundbtn svg{ width:16px;height:16px;fill:#fff; display:block; }
-  #soundbtn .soundlabel{ display:none; }
-  #soundbtn .ic-off{ display:none; }
-  /* Stumm-Zustand: Akzent-betont, pulst, fordert zum Einschalten auf */
-  #soundbtn.muted{
-    background:linear-gradient(135deg,var(--accent),var(--accent-2)); border-color:transparent;
-    box-shadow:0 8px 26px -8px var(--accent); animation:pulse 2.2s ease-in-out infinite;
-  }
-  #soundbtn.muted .soundlabel{ display:inline; }
-  #soundbtn.muted .ic-off{ display:block; }
-  #soundbtn.muted .ic-on{ display:none; }
-
-  /* play / pause overlay */
+  /* großes Unmute-/Pause-Overlay */
   #overlay{
     position:absolute; inset:0; z-index:4; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:18px; cursor:pointer;
-    background:radial-gradient(60% 60% at 50% 45%, rgba(7,12,35,.34), rgba(7,12,35,.72));
+    align-items:center; justify-content:center; gap:16px; cursor:pointer; text-align:center;
+    background:radial-gradient(70% 70% at 50% 45%, rgba(7,12,35,.40), rgba(7,12,35,.78));
     transition:opacity .35s ease;
   }
-  #overlay.started{ background:rgba(7,12,35,.26); }
   #overlay.hidden{ opacity:0; pointer-events:none; }
-  .playbtn{
-    width:84px;height:84px;border-radius:50%;
+  .ov-btn{
+    width:88px;height:88px;border-radius:50%;
     background:linear-gradient(135deg,var(--accent),var(--accent-2));
     display:flex;align-items:center;justify-content:center;
-    box-shadow:0 0 0 6px rgba(255,255,255,.14),0 18px 50px -10px var(--accent);
-    transition:transform .2s ease,box-shadow .2s ease;
+    box-shadow:0 0 0 8px rgba(255,255,255,.12),0 18px 50px -10px var(--accent);
+    transition:transform .2s ease; animation:pulse 2.4s ease-in-out infinite;
   }
-  #overlay:hover .playbtn{ transform:scale(1.06); }
-  .playbtn svg{ width:30px;height:30px;margin-left:4px;fill:var(--accent-ink); }
-  .playlabel{ font-family:"Space Mono",monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#fff; text-align:center; padding:0 16px; }
-  #overlay.started .playlabel{ display:none; }
+  #overlay:hover .ov-btn{ transform:scale(1.06); }
+  .ov-btn svg{ width:34px;height:34px;fill:#fff; display:block; }
+  .ov-btn .ic-play{ display:none; margin-left:4px; }
+  #overlay.mode-play .ic-play{ display:block; }
+  #overlay.mode-play .ic-sound{ display:none; }
+  .ov-text{ display:flex; flex-direction:column; gap:5px; padding:0 20px; }
+  .ov-l1{ font-family:"Space Grotesk",sans-serif; font-weight:700; font-size:clamp(18px,2.4vw,24px); color:#fff; letter-spacing:-.01em; }
+  .ov-l2{ font-family:"Space Mono",monospace; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.82); }
 
   /* fake (accelerated) progress bar — dekorativ, nicht seekbar, ohne %-Zahl */
   .progress{ position:relative; z-index:6; height:7px; margin-top:14px; background:rgba(11,20,55,.12); border-radius:99px; overflow:hidden; }
@@ -142,7 +122,6 @@
   }
   .cta__btn:hover{ transform:translateY(-2px); }
   .cta__btn svg{ width:18px;height:18px;fill:var(--accent-ink); }
-  .cta__note{ font-family:"Space Mono",monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); }
 
   /* ---- Proof Section ---- */
   .proof{ margin-top:clamp(72px,12vh,128px); }
@@ -186,7 +165,7 @@
     .cards{ grid-template-columns:1fr; max-width:440px; margin:0 auto; }
   }
   @media (max-width:560px){
-    h1{ font-size:30px; } .playbtn{ width:68px;height:68px; }
+    h1{ font-size:30px; } .ov-btn{ width:72px;height:72px; }
     .cta__btn{ padding:18px 32px; font-size:16px; width:100%; justify-content:center; }
   }
   @media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }
@@ -219,7 +198,8 @@
       <div class="stage">
         <video id="vsl-video"
                playsinline webkit-playsinline
-               preload="metadata"
+               muted autoplay
+               preload="auto"
                disablepictureinpicture
                controlslist="nodownload noplaybackrate noremoteplayback"
                poster="https://vz-73949e23-df6.b-cdn.net/4dc5c4bd-87d4-4c41-a494-52b355d38bd1/thumbnail.jpg"></video>
@@ -227,17 +207,16 @@
         <!-- blockt jeden Klick -> nichts zu skippen -->
         <div id="shield"></div>
 
-        <!-- Sound-Toggle: erscheint beim Abspielen, fordert bei stumm zum Einschalten auf -->
-        <button id="soundbtn" type="button" aria-label="Ton ein- oder ausschalten">
-          <svg class="ic-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z"/></svg>
-          <svg class="ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4 9.91 6.09 12 8.18zm7 8c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.96 8.96 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/></svg>
-          <span class="soundlabel">Ton einschalten</span>
-        </button>
-
-        <!-- play gate + pause state -->
-        <div id="overlay">
-          <div class="playbtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></div>
-          <div class="playlabel">Video starten</div>
+        <!-- großes Unmute-Gate (Autoplay läuft stumm) / Pause-State -->
+        <div id="overlay" class="mode-unmute">
+          <div class="ov-btn">
+            <svg class="ic-sound" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z"/></svg>
+            <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <div class="ov-text">
+            <span class="ov-l1">Dein Video läuft</span>
+            <span class="ov-l2">Klicken um Stummschaltung aufzuheben</span>
+          </div>
         </div>
       </div>
 
@@ -250,7 +229,6 @@
         Call buchen
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12.17l-5.59 5.59L13 19l8-7-8-7-1.41 1.41L17.17 11H5z"/></svg>
       </a>
-      <div class="cta__note">Begrenzte Plätze · kostenloses Erstgespräch</div>
     </div>
 
     <!-- Proof -->
@@ -301,11 +279,13 @@
    ========================================================= */
 const CONFIG = {
   HLS_URL:            "https://vz-73949e23-df6.b-cdn.net/4dc5c4bd-87d4-4c41-a494-52b355d38bd1/playlist.m3u8",
-  FAKE_EXPONENT:      0.38,   // < 1 => Bar läuft vorne schneller. Kleiner = aggressiver.
+  PROGRESS_SPEED:     3.5,    // Tempo der Bar. Höher = schneller (vor allem am Anfang). 1 = linear, 2-5 = aggressiv.
+  PROGRESS_FULL_AT:   0.85,   // Bar ist bei diesem Anteil des Videos schon "voll" (sieht fertig aus, ist es aber nicht). 1 = exakt am Ende.
+  AUTOPLAY_MUTED:     true,   // Video startet automatisch stumm + großes "Click to Unmute"-Overlay.
   CTA_ALWAYS_VISIBLE: true,   // true = Button die ganze Zeit sichtbar. false = erst ab CTA_REVEAL_SECONDS.
   CTA_REVEAL_SECONDS: 4,      // nur relevant wenn CTA_ALWAYS_VISIBLE=false. Live = echter Pitch-Timestamp (z.B. 1800).
   BOOKING_URL:        "#",    // <-- Calendly / Perspective Booking-Link HIER rein
-  ALLOW_PAUSE:        true    // Klick aufs Video pausiert/startet. false = komplett gelockt.
+  ALLOW_PAUSE:        true    // Klick aufs Video pausiert/startet (nach dem Unmute). false = komplett gelockt.
 };
 /* ========================================================= */
 
@@ -316,12 +296,12 @@ const CONFIG = {
   const fill     = document.getElementById("progressFill");
   const cta      = document.getElementById("cta");
   const ctaBtn   = document.getElementById("ctaBtn");
-  const soundbtn = document.getElementById("soundbtn");
-  const playlabel= overlay.querySelector(".playlabel");
+  const ovL1     = overlay.querySelector(".ov-l1");
+  const ovL2     = overlay.querySelector(".ov-l2");
 
   ctaBtn.href = CONFIG.BOOKING_URL;
 
-  let started = false, ctaShown = false, canPlay = false;
+  let unmuted = false, ctaShown = false;
 
   // CTA von Anfang an sichtbar, wenn so konfiguriert
   if (CONFIG.CTA_ALWAYS_VISIBLE){ cta.classList.add("show"); ctaShown = true; }
@@ -339,26 +319,36 @@ const CONFIG = {
       const hls = new Hls({ enableWorker:true, lowLatencyMode:false });
       hls.loadSource(CONFIG.HLS_URL);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, function(){ canPlay = true; });
+      hls.on(Hls.Events.MANIFEST_PARSED, autostart);
       hls.on(Hls.Events.ERROR, function(e, d){
-        if (d && d.fatal){
-          playlabel.textContent = "Stream blockiert — im Browser öffnen / Security prüfen";
-        }
+        if (d && d.fatal){ setMode("error"); showOverlay(); }
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")){
       video.src = CONFIG.HLS_URL;        // Safari / iOS nativ
-      video.addEventListener("loadedmetadata", function(){ canPlay = true; });
+      video.addEventListener("loadedmetadata", autostart);
     } else {
-      playlabel.textContent = "HLS wird nicht unterstützt";
+      setMode("error"); showOverlay();
     }
   }
 
-  /* ---- Fake-Progress ---- */
+  /* ---- Autostart: stumm losspielen (Browser erlauben muted-Autoplay) ---- */
+  function autostart(){
+    if (!CONFIG.AUTOPLAY_MUTED) return;     // dann startet das Video erst beim ersten Klick
+    video.muted = true;
+    video.play().catch(function(){
+      // Autoplay geblockt -> Overlay bleibt das Klick-Gate (erster Klick startet + entstummt)
+    });
+  }
+
+  /* ---- Fake-Progress (vorne schnell, "voll" schon vor dem echten Ende) ---- */
   function updateFakeProgress(){
     const dur = video.duration;
     if (!dur || !isFinite(dur) || dur <= 0) return;
     const real = Math.min(Math.max(video.currentTime / dur, 0), 1);
-    const fake = Math.pow(real, CONFIG.FAKE_EXPONENT);
+    const speed  = CONFIG.PROGRESS_SPEED > 0 ? CONFIG.PROGRESS_SPEED : 1;
+    const fullAt = Math.min(Math.max(CONFIG.PROGRESS_FULL_AT || 1, 0.05), 1);
+    const ratio  = Math.min(real / fullAt, 1);          // erreicht 1 schon bei fullAt
+    const fake   = Math.pow(ratio, 1 / speed);          // höheres speed => vorne schneller
     fill.style.width = (fake * 100).toFixed(2) + "%";
 
     // Tracking-Milestones (echte %), für Phase 2
@@ -376,28 +366,54 @@ const CONFIG = {
     track("cta_revealed", { at: Math.round(video.currentTime) });
   }
 
+  /* ---- Overlay-Modus ---- */
+  function setMode(mode){
+    overlay.classList.remove("mode-unmute","mode-play");
+    if (mode === "unmute"){
+      overlay.classList.add("mode-unmute");
+      ovL1.textContent = "Dein Video läuft";
+      ovL2.textContent = "Klicken um Stummschaltung aufzuheben";
+    } else if (mode === "pause"){
+      overlay.classList.add("mode-play");
+      ovL1.textContent = "Pausiert";
+      ovL2.textContent = "Klicken zum Fortsetzen";
+    } else if (mode === "replay"){
+      overlay.classList.add("mode-play");
+      ovL1.textContent = "Video zu Ende";
+      ovL2.textContent = "Erneut abspielen";
+    } else if (mode === "error"){
+      overlay.classList.add("mode-play");
+      ovL1.textContent = "Stream blockiert";
+      ovL2.textContent = "Im Browser öffnen / Security prüfen";
+    }
+  }
+  function showOverlay(){ overlay.classList.remove("hidden"); }
+  function hideOverlay(){ overlay.classList.add("hidden"); }
+
   /* ---- Steuerung (kein Seek vorhanden) ---- */
   function play(){ video.play().catch(function(){}); }
   function pause(){ if (CONFIG.ALLOW_PAUSE) video.pause(); }
-  function toggle(){
-    if (!started){ play(); return; }
+
+  function onVideoClick(){
+    // Video zu Ende -> von vorne
+    if (video.ended){ unmuted = true; video.currentTime = 0; play(); hideOverlay(); return; }
+    // Erster Klick -> Ton an (startet zusätzlich, falls Autoplay geblockt war)
+    if (!unmuted){
+      unmuted = true;
+      video.muted = false;
+      if (video.volume === 0) video.volume = 1;
+      hideOverlay();
+      play();
+      track("video_unmute");
+      return;
+    }
+    // Danach: pausieren / fortsetzen
+    if (!CONFIG.ALLOW_PAUSE) return;
     video.paused ? play() : pause();
   }
 
-  shield.addEventListener("click", toggle);
-  overlay.addEventListener("click", toggle);
-
-  /* ---- Sound-Toggle ---- */
-  function syncSound(){
-    soundbtn.classList.toggle("muted", video.muted || video.volume === 0);
-  }
-  soundbtn.addEventListener("click", function(e){
-    e.stopPropagation();
-    video.muted = !video.muted;
-    if (!video.muted && video.volume === 0) video.volume = 1;
-    syncSound();
-    track("sound_toggle", { muted: video.muted });
-  });
+  shield.addEventListener("click", onVideoClick);
+  overlay.addEventListener("click", onVideoClick);
 
   // Keyboard-Seeking unterbinden (Belt & Suspenders)
   document.addEventListener("keydown", function(e){
@@ -408,23 +424,19 @@ const CONFIG = {
 
   /* ---- Video Events ---- */
   video.addEventListener("play", function(){
-    if (!started){ started = true; overlay.classList.add("started"); track("video_start"); }
-    overlay.classList.add("hidden");
-    soundbtn.classList.add("visible"); syncSound();
+    if (unmuted){ hideOverlay(); }            // mit Ton -> Overlay weg
+    else { setMode("unmute"); showOverlay(); } // stumm (Autoplay) -> Unmute-Gate zeigen
   });
   video.addEventListener("pause", function(){
-    if (!video.ended) overlay.classList.remove("hidden");
-    soundbtn.classList.remove("visible");
+    if (!video.ended && unmuted){ setMode("pause"); showOverlay(); }
   });
-  video.addEventListener("volumechange", syncSound);
   video.addEventListener("timeupdate", function(){
     updateFakeProgress();
-    if (video.currentTime >= CONFIG.CTA_REVEAL_SECONDS) showCTA();
+    if (!CONFIG.CTA_ALWAYS_VISIBLE && video.currentTime >= CONFIG.CTA_REVEAL_SECONDS) showCTA();
   });
   video.addEventListener("ended", function(){
     fill.style.width = "100%";
-    overlay.classList.remove("hidden");
-    soundbtn.classList.remove("visible");
+    setMode("replay"); showOverlay();
     if (!milestones[100]){ milestones[100] = true; track("video_complete"); }
     showCTA();
   });
