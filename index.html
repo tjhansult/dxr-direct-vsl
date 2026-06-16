@@ -302,7 +302,8 @@
 const CONFIG = {
   HLS_URL:            "https://vz-73949e23-df6.b-cdn.net/4dc5c4bd-87d4-4c41-a494-52b355d38bd1/playlist.m3u8",
   FAKE_EXPONENT:      0.38,   // < 1 => Bar läuft vorne schneller. Kleiner = aggressiver.
-  CTA_REVEAL_SECONDS: 4,      // Preview niedrig. Live = echter Pitch-Timestamp (z.B. 1800).
+  CTA_ALWAYS_VISIBLE: true,   // true = Button die ganze Zeit sichtbar. false = erst ab CTA_REVEAL_SECONDS.
+  CTA_REVEAL_SECONDS: 4,      // nur relevant wenn CTA_ALWAYS_VISIBLE=false. Live = echter Pitch-Timestamp (z.B. 1800).
   BOOKING_URL:        "#",    // <-- Calendly / Perspective Booking-Link HIER rein
   ALLOW_PAUSE:        true    // Klick aufs Video pausiert/startet. false = komplett gelockt.
 };
@@ -321,6 +322,9 @@ const CONFIG = {
   ctaBtn.href = CONFIG.BOOKING_URL;
 
   let started = false, ctaShown = false, canPlay = false;
+
+  // CTA von Anfang an sichtbar, wenn so konfiguriert
+  if (CONFIG.CTA_ALWAYS_VISIBLE){ cta.classList.add("show"); ctaShown = true; }
   const milestones = { 25:false, 50:false, 75:false, 100:false };
 
   /* ---- Phase-2 Tracking-Hook (jetzt nur console, später GA4/Meta/Perspective) ---- */
