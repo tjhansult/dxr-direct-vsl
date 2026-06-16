@@ -397,11 +397,12 @@ const CONFIG = {
   function onVideoClick(){
     // Video zu Ende -> von vorne
     if (video.ended){ unmuted = true; video.currentTime = 0; play(); hideOverlay(); return; }
-    // Erster Klick -> Ton an (startet zusätzlich, falls Autoplay geblockt war)
+    // Erster Klick -> Ton an UND von vorne starten (nichts vom Anfang verpassen)
     if (!unmuted){
       unmuted = true;
       video.muted = false;
       if (video.volume === 0) video.volume = 1;
+      try { video.currentTime = 0; } catch(e){}
       hideOverlay();
       play();
       track("video_unmute");
