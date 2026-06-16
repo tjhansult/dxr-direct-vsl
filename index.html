@@ -32,13 +32,6 @@
     color:var(--text); font-family:"Inter",system-ui,sans-serif; line-height:1.6;
     -webkit-font-smoothing:antialiased; min-height:100vh; position:relative; overflow-x:hidden;
   }
-  body::before{
-    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-    background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);
-    background-size:64px 64px;
-    mask-image:radial-gradient(1200px 820px at 50% 18%, #000 28%, transparent 78%);
-    -webkit-mask-image:radial-gradient(1200px 820px at 50% 18%, #000 28%, transparent 78%);
-  }
   .wrap{ position:relative; z-index:1; max-width:980px; margin:0 auto; padding:clamp(32px,6vh,64px) 24px 80px; }
 
   /* ---- Header / Logo ---- */
@@ -47,16 +40,11 @@
 
   /* ---- Hero ---- */
   .hero{ text-align:center; }
-  .kicker{
-    font-family:"Space Mono",monospace; font-size:12px; letter-spacing:.22em; text-transform:uppercase;
-    color:var(--accent); display:inline-flex; align-items:center; gap:12px; margin-bottom:22px;
-  }
-  .kicker::before,.kicker::after{ content:""; width:24px; height:1px; background:var(--accent); opacity:.6; display:inline-block; }
 
   h1{
     font-family:"Space Grotesk",sans-serif; font-weight:700; color:var(--navy);
-    font-size:clamp(30px,5vw,56px); line-height:1.06; letter-spacing:-.025em;
-    margin:0 auto 22px; max-width:16ch;
+    font-size:clamp(26px,3.6vw,42px); line-height:1.12; letter-spacing:-.02em;
+    margin:0 auto 22px; max-width:26ch;
   }
   h1 .accent{ color:var(--accent); }
   .sub{ font-size:clamp(16px,1.9vw,19px); color:var(--muted); max-width:58ch; margin:0 auto clamp(34px,5vh,50px); }
@@ -67,15 +55,7 @@
     position:relative; border:1px solid var(--line); background:var(--surface);
     border-radius:14px; padding:14px; box-shadow:0 30px 80px -32px rgba(11,20,55,.28);
   }
-  .panel__label{
-    font-family:"Space Mono",monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
-    color:var(--faint); display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:0 2px;
-  }
-  .panel__label .dot{
-    width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);
-    display:inline-block;margin-right:8px;vertical-align:middle;animation:pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.55} }
 
   .tick{ position:absolute; width:13px; height:13px; pointer-events:none; z-index:6; opacity:.55; }
   .tick::before,.tick::after{ content:""; position:absolute; background:var(--accent); }
@@ -92,6 +72,29 @@
 
   /* click shield: fängt alle Klicks ab -> kein Zugriff auf irgendwelche Controls */
   #shield{ position:absolute; inset:0; z-index:3; cursor:pointer; background:transparent; }
+
+  /* ---- Sound-Toggle ---- */
+  #soundbtn{
+    position:absolute; top:14px; right:14px; z-index:5; display:none;
+    align-items:center; gap:8px; cursor:pointer;
+    font-family:"Space Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:#fff; background:rgba(7,12,35,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.18); border-radius:99px; padding:9px 14px;
+    transition:background .2s ease, transform .2s ease;
+  }
+  #soundbtn.visible{ display:inline-flex; }
+  #soundbtn:hover{ transform:translateY(-1px); }
+  #soundbtn svg{ width:16px;height:16px;fill:#fff; display:block; }
+  #soundbtn .soundlabel{ display:none; }
+  #soundbtn .ic-off{ display:none; }
+  /* Stumm-Zustand: Akzent-betont, pulst, fordert zum Einschalten auf */
+  #soundbtn.muted{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); border-color:transparent;
+    box-shadow:0 8px 26px -8px var(--accent); animation:pulse 2.2s ease-in-out infinite;
+  }
+  #soundbtn.muted .soundlabel{ display:inline; }
+  #soundbtn.muted .ic-off{ display:block; }
+  #soundbtn.muted .ic-on{ display:none; }
 
   /* play / pause overlay */
   #overlay{
@@ -115,11 +118,11 @@
   #overlay.started .playlabel{ display:none; }
 
   /* fake (accelerated) progress bar — dekorativ, nicht seekbar, ohne %-Zahl */
-  .progress{ position:relative; z-index:6; height:3px; margin-top:12px; background:var(--line); border-radius:99px; overflow:hidden; }
+  .progress{ position:relative; z-index:6; height:7px; margin-top:14px; background:rgba(11,20,55,.12); border-radius:99px; overflow:hidden; }
   .progress__fill{
     height:100%; width:0%;
     background:linear-gradient(90deg,var(--accent-2),var(--accent));
-    box-shadow:0 0 12px var(--glow); border-radius:99px; transition:width .28s linear;
+    box-shadow:0 0 16px var(--accent); border-radius:99px; transition:width .28s linear;
   }
 
   /* ---- CTA ---- */
@@ -201,12 +204,10 @@
 
     <!-- Hero -->
     <section class="hero">
-      <div class="kicker">DXR // AI Growth System</div>
-
       <h1>Aktuell hängt alles an Dir und Du bist das <span class="accent">Betriebssystem Deiner Agentur</span>.</h1>
 
       <p class="sub">
-        Wir übertragen die Verantwortung von Deinem Kopf in ein <strong>System und Team, das sich selbst managt</strong> — und KI sinnvoll hebelt. Am Ende machst Du <strong>konstant hohen Profit</strong> und hast eine Agentur, die Dir dient — nicht andersherum.
+        Wir übertragen die Verantwortung von Deinem Kopf in ein <strong>System und Team, das sich selbst managt</strong> und KI sinnvoll hebelt. Am Ende machst Du <strong>konstant hohen Profit</strong> und hast eine Agentur, die Dir dient. Nicht andersherum.
       </p>
     </section>
 
@@ -214,11 +215,6 @@
     <section class="panel" aria-label="Video">
       <span class="tick tl"></span><span class="tick tr"></span>
       <span class="tick bl"></span><span class="tick br"></span>
-
-      <div class="panel__label">
-        <span><span class="dot"></span>System.VSL — 01</span>
-        <span>DXR / DACH</span>
-      </div>
 
       <div class="stage">
         <video id="vsl-video"
@@ -230,6 +226,13 @@
 
         <!-- blockt jeden Klick -> nichts zu skippen -->
         <div id="shield"></div>
+
+        <!-- Sound-Toggle: erscheint beim Abspielen, fordert bei stumm zum Einschalten auf -->
+        <button id="soundbtn" type="button" aria-label="Ton ein- oder ausschalten">
+          <svg class="ic-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.06A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z"/></svg>
+          <svg class="ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4 9.91 6.09 12 8.18zm7 8c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.96 8.96 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/></svg>
+          <span class="soundlabel">Ton einschalten</span>
+        </button>
 
         <!-- play gate + pause state -->
         <div id="overlay">
@@ -298,7 +301,7 @@
    ========================================================= */
 const CONFIG = {
   HLS_URL:            "https://vz-73949e23-df6.b-cdn.net/4dc5c4bd-87d4-4c41-a494-52b355d38bd1/playlist.m3u8",
-  FAKE_EXPONENT:      0.55,   // < 1 => Bar läuft vorne schneller. Kleiner = aggressiver.
+  FAKE_EXPONENT:      0.38,   // < 1 => Bar läuft vorne schneller. Kleiner = aggressiver.
   CTA_REVEAL_SECONDS: 4,      // Preview niedrig. Live = echter Pitch-Timestamp (z.B. 1800).
   BOOKING_URL:        "#",    // <-- Calendly / Perspective Booking-Link HIER rein
   ALLOW_PAUSE:        true    // Klick aufs Video pausiert/startet. false = komplett gelockt.
@@ -312,6 +315,7 @@ const CONFIG = {
   const fill     = document.getElementById("progressFill");
   const cta      = document.getElementById("cta");
   const ctaBtn   = document.getElementById("ctaBtn");
+  const soundbtn = document.getElementById("soundbtn");
   const playlabel= overlay.querySelector(".playlabel");
 
   ctaBtn.href = CONFIG.BOOKING_URL;
@@ -379,6 +383,18 @@ const CONFIG = {
   shield.addEventListener("click", toggle);
   overlay.addEventListener("click", toggle);
 
+  /* ---- Sound-Toggle ---- */
+  function syncSound(){
+    soundbtn.classList.toggle("muted", video.muted || video.volume === 0);
+  }
+  soundbtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    video.muted = !video.muted;
+    if (!video.muted && video.volume === 0) video.volume = 1;
+    syncSound();
+    track("sound_toggle", { muted: video.muted });
+  });
+
   // Keyboard-Seeking unterbinden (Belt & Suspenders)
   document.addEventListener("keydown", function(e){
     if (["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," ","Spacebar"].includes(e.key)) e.preventDefault();
@@ -390,10 +406,13 @@ const CONFIG = {
   video.addEventListener("play", function(){
     if (!started){ started = true; overlay.classList.add("started"); track("video_start"); }
     overlay.classList.add("hidden");
+    soundbtn.classList.add("visible"); syncSound();
   });
   video.addEventListener("pause", function(){
     if (!video.ended) overlay.classList.remove("hidden");
+    soundbtn.classList.remove("visible");
   });
+  video.addEventListener("volumechange", syncSound);
   video.addEventListener("timeupdate", function(){
     updateFakeProgress();
     if (video.currentTime >= CONFIG.CTA_REVEAL_SECONDS) showCTA();
@@ -401,6 +420,7 @@ const CONFIG = {
   video.addEventListener("ended", function(){
     fill.style.width = "100%";
     overlay.classList.remove("hidden");
+    soundbtn.classList.remove("visible");
     if (!milestones[100]){ milestones[100] = true; track("video_complete"); }
     showCTA();
   });
