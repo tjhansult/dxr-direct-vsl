@@ -1,0 +1,15 @@
+# DXR Direct VSL — Netlify Config (statische Site, index.html im Root)
+[build]
+  publish = "."
+
+# Langes Caching für Assets (Logos, Profilbilder)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# HTML immer frisch ausliefern
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

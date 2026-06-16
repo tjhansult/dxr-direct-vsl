@@ -1,0 +1,9 @@
+.DS_Store
+*.DS_Store
+
+# Referenz-/Arbeitsdateien, nicht Teil der Site
+Screenshot*.png
+dxr-vsl-custom.html
+
+# Netlify
+.netlify/
