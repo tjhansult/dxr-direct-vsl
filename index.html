@@ -123,6 +123,31 @@
   .cta__btn:hover{ transform:translateY(-2px); }
   .cta__btn svg{ width:18px;height:18px;fill:var(--accent-ink); }
 
+  /* ---- Speed-Settings (Tuning) ---- */
+  .settings{ position:fixed; right:18px; bottom:18px; z-index:50; font-family:"Space Mono",monospace; }
+  .settings__toggle{
+    width:42px; height:42px; border-radius:50%; cursor:pointer;
+    background:var(--surface); border:1px solid var(--line); color:var(--muted);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 30px -12px rgba(11,20,55,.4); transition:transform .25s ease, color .2s ease;
+  }
+  .settings__toggle:hover{ transform:rotate(40deg); color:var(--accent); }
+  .settings__toggle svg{ width:20px; height:20px; fill:currentColor; }
+  .settings__panel{
+    position:absolute; right:0; bottom:54px; width:250px;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    box-shadow:0 24px 60px -24px rgba(11,20,55,.45); padding:18px;
+    opacity:0; transform:translateY(8px) scale(.98); pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .settings.open .settings__panel{ opacity:1; transform:none; pointer-events:auto; }
+  .settings__title{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:14px; }
+  .settings__row{ margin-bottom:14px; }
+  .settings__row:last-child{ margin-bottom:0; }
+  .settings__label{ display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:7px; }
+  .settings__label b{ color:var(--navy); font-weight:700; }
+  .settings__row input[type=range]{ width:100%; accent-color:var(--accent); cursor:pointer; }
+
   /* ---- Proof Section ---- */
   .proof{ margin-top:clamp(72px,12vh,128px); }
   .proof__head{
@@ -270,6 +295,24 @@
       <img src="assets/logo_dark.webp" alt="DigitalXResults">
       <div class="footer__note">© DigitalXResults · <a href="https://digitalxresults.de" target="_blank" rel="noopener">digitalxresults.de</a></div>
     </footer>
+
+    <!-- Speed-Settings (Tuning, Wert wird in localStorage gemerkt) -->
+    <div class="settings" id="settings" aria-label="Progress-Speed Einstellungen">
+      <div class="settings__panel">
+        <div class="settings__title">Progress-Speed</div>
+        <div class="settings__row">
+          <div class="settings__label"><span>Tempo</span><b id="setSpeedVal">3.5×</b></div>
+          <input type="range" id="setSpeed" min="1" max="8" step="0.1" value="3.5" aria-label="Tempo">
+        </div>
+        <div class="settings__row">
+          <div class="settings__label"><span>Voll bei</span><b id="setFullVal">85%</b></div>
+          <input type="range" id="setFull" min="50" max="100" step="1" value="85" aria-label="Voll bei">
+        </div>
+      </div>
+      <button class="settings__toggle" id="settingsToggle" type="button" aria-label="Speed-Einstellungen öffnen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.13.22.39.31.59.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.25.41.48.41h3.84c.23 0 .43-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.2.09.46 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></svg>
+      </button>
+    </div>
 
   </main>
 
@@ -443,6 +486,47 @@ const CONFIG = {
   });
 
   ctaBtn.addEventListener("click", function(){ track("cta_click", { href: CONFIG.BOOKING_URL }); });
+
+  /* ---- Speed-Settings (Live-Tuning, gemerkt in localStorage) ---- */
+  (function initSettings(){
+    const box    = document.getElementById("settings");
+    const toggle = document.getElementById("settingsToggle");
+    const sp     = document.getElementById("setSpeed");
+    const fu     = document.getElementById("setFull");
+    const spVal  = document.getElementById("setSpeedVal");
+    const fuVal  = document.getElementById("setFullVal");
+    if (!box) return;
+
+    // gespeicherte Werte laden -> CONFIG überschreiben
+    try {
+      const s = parseFloat(localStorage.getItem("dxr_speed"));
+      const f = parseFloat(localStorage.getItem("dxr_fullat"));
+      if (!isNaN(s)) CONFIG.PROGRESS_SPEED   = s;
+      if (!isNaN(f)) CONFIG.PROGRESS_FULL_AT = f;
+    } catch(e){}
+
+    sp.value = CONFIG.PROGRESS_SPEED;
+    fu.value = Math.round(CONFIG.PROGRESS_FULL_AT * 100);
+    function render(){
+      spVal.textContent = (+sp.value).toFixed(1) + "×";
+      fuVal.textContent = fu.value + "%";
+    }
+    render();
+
+    toggle.addEventListener("click", function(e){ e.stopPropagation(); box.classList.toggle("open"); });
+    document.addEventListener("click", function(e){ if (!box.contains(e.target)) box.classList.remove("open"); });
+
+    sp.addEventListener("input", function(){
+      CONFIG.PROGRESS_SPEED = +sp.value;
+      try { localStorage.setItem("dxr_speed", sp.value); } catch(e){}
+      render(); updateFakeProgress();
+    });
+    fu.addEventListener("input", function(){
+      CONFIG.PROGRESS_FULL_AT = (+fu.value) / 100;
+      try { localStorage.setItem("dxr_fullat", (+fu.value) / 100); } catch(e){}
+      render(); updateFakeProgress();
+    });
+  })();
 
   loadStream();
 })();
